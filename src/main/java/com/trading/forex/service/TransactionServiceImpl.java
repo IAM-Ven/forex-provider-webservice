@@ -4,6 +4,7 @@ import com.trading.forex.entity.Account;
 import com.trading.forex.entity.Recipient;
 import com.trading.forex.entity.TransactionDetails;
 import com.trading.forex.entity.User;
+import com.trading.forex.payload.PagedResponse;
 import com.trading.forex.repository.AccountRepository;
 import com.trading.forex.repository.RecipientRepository;
 import com.trading.forex.repository.TransactionRepository;
@@ -12,12 +13,17 @@ import com.trading.forex.util.UtilityClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,21 +49,44 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private RecipientRepository recipientRepository;
 
+
+
     @Override
-    public List<TransactionDetails> findTransactionList(String username) {
+    public PagedResponse<TransactionDetails> findTransactionList(String username, int page, int size) {
+        utilities.validatePageNumberAndSize(page, size);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<TransactionDetails> transactions = transactionRepository.findAll(pageable);
         User user = utilities.getUserFromUsername(username);
-        List<TransactionDetails> transactionDetailsList = user.getAccount().getTransactionDetailsList();
-        return transactionDetailsList;
+        if(transactions.getNumberOfElements() == 0) {
+            return new PagedResponse<>(Collections.emptyList(), transactions.getNumber(),
+                    transactions.getSize(), transactions.getTotalElements(), transactions.getTotalPages(), transactions.isLast());
+        }
+
+        return new PagedResponse<>(user.getAccount().getTransactionDetailsList(),transactions.getNumber(),
+                transactions.getSize(), transactions.getTotalElements(), transactions.getTotalPages(), transactions.isLast());
     }
 
     @Override
-    public List<TransactionDetails> findTransactionListByAccountNumberBetweenDates(String accountNum, Date startDate, Date endDate) {
-        return transactionRepository.findAllByAccountNumberBetweenDates(accountNum, startDate, endDate);
+    public PagedResponse<TransactionDetails> findTransactionListByAccountNumberBetweenDates(String accountNum, Date startDate, Date endDate, int page, int size) {
+        utilities.validatePageNumberAndSize(page, size);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<TransactionDetails> transactions = transactionRepository.findAllByAccountNumberBetweenDates(accountNum, startDate, endDate, pageable);
+
+        return new PagedResponse<>((transactions.getNumberOfElements() == 0) ? Collections.emptyList() : transactions.getContent(),transactions.getNumber(),
+                transactions.getSize(), transactions.getTotalElements(), transactions.getTotalPages(), transactions.isLast());
     }
 
     @Override
-    public List<TransactionDetails> findTransactionListByRecipientNameBetweenDates(String recipientName, Date startDate, Date endDate) {
-        return transactionRepository.findAllByRecipientNameBetweenDates(recipientName, startDate, endDate);
+    public PagedResponse<TransactionDetails> findTransactionListByRecipientNameBetweenDates(String recipientName, Date startDate, Date endDate, int page, int size) {
+        utilities.validatePageNumberAndSize(page, size);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<TransactionDetails> transactions = transactionRepository.findAllByRecipientNameBetweenDates(recipientName, startDate, endDate, pageable);
+
+        return new PagedResponse<>((transactions.getNumberOfElements() == 0) ? Collections.emptyList() : transactions.getContent(),transactions.getNumber(),
+                transactions.getSize(), transactions.getTotalElements(), transactions.getTotalPages(), transactions.isLast());
     }
 
     @Override
@@ -75,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
     public void saveAccountWithdrawTransaction(TransactionDetails transactionDetails) throws Exception {
         try {
             transactionRepository.save(transactionDetails);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             log.info("Failure withdrawing with reason {}", ex.getMessage());
         }
     }

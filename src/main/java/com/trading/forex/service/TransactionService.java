@@ -3,6 +3,7 @@ package com.trading.forex.service;
 import com.trading.forex.entity.Account;
 import com.trading.forex.entity.Recipient;
 import com.trading.forex.entity.TransactionDetails;
+import com.trading.forex.payload.PagedResponse;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -11,11 +12,11 @@ import java.util.List;
 
 public interface TransactionService {
 
-    List<TransactionDetails> findTransactionList(String username);
+    PagedResponse<TransactionDetails> findTransactionList(String username, int page, int size);
 
-    List<TransactionDetails> findTransactionListByAccountNumberBetweenDates(String accountNum, Date startDate, Date endDate);
+    PagedResponse<TransactionDetails> findTransactionListByAccountNumberBetweenDates(String accountNum, Date startDate, Date endDate, int page, int size);
 
-    List<TransactionDetails> findTransactionListByRecipientNameBetweenDates(String recipientName, Date startDate, Date endDate);
+    PagedResponse<TransactionDetails> findTransactionListByRecipientNameBetweenDates(String recipientName, Date startDate, Date endDate, int page, int size);
 
     void saveAccountDepositTransaction(TransactionDetails transactionDetails) throws Exception;
 
