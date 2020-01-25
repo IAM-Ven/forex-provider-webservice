@@ -163,8 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
-    public Long transferRecipient(Recipient recipient, String currencyType, double amount, Account account) throws Exception {
-        Date date = null;
+    public Long transferRecipient(Recipient recipient, Date date, String currencyType, double amount, Account account) throws Exception {
         TransactionDetails transactionDetails = null;
         BigDecimal conversionRate = getConversionRate(currencyType, recipient.getCurrencyType());
         try {
@@ -174,7 +173,6 @@ public class TransactionServiceImpl implements TransactionService {
             }
             account.setAccountBalance(account.getAccountBalance().subtract((new BigDecimal(amount)).multiply(conversionRate)));
             accountRepository.save(account);
-            date = new Date();
             transactionDetails = new TransactionDetails(date, "Successfully transferred to " + recipient.getName() + " with amount " + amount, "Transfer", "Success", amount, account.getAccountBalance(), conversionRate, currencyType, recipient.getCurrencyType(), account);
             transactionRepository.save(transactionDetails);
         } catch (Exception ex) {

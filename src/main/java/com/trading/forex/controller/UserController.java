@@ -114,23 +114,4 @@ public class UserController {
         return ResponseEntity.created(location).body(new ApiResponse(true, "Recipient " + recipientName + " deleted successfully"));
     }
 
-    @GetMapping("/transaction/{transactionId}")
-    public TransactionDetails getTransactionById(@PathVariable("transactionId") Long id) {
-        return transactionService.getTransactionById(id);
-    }
-
-    @PostMapping("/transfer/{recipientName}/{amount}")
-    @Transactional
-    public ResponseEntity<ApiResponse> transferRecipient(@PathVariable("recipientName") String recipientName, @PathVariable("amount") double amount, @CurrentUser UserPrincipal principal) throws Exception {
-        User user = utilities.getUserByUsername(principal.getUsername());
-        Recipient recipient = transactionService.findRecipientByName(recipientName);
-        Long id = transactionService.transferRecipient(recipient, recipient.getCurrencyType(), amount, user.getAccount());
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentContextPath().path("/api/forex/transaction/{transactionId}")
-                .buildAndExpand(id).toUri();
-
-        return ResponseEntity.created(location).body(new ApiResponse(true, "Recipient " + recipientName + " deleted successfully"));
-    }
-
 }

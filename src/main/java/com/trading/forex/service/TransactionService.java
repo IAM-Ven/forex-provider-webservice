@@ -36,5 +36,5 @@ public interface TransactionService {
 
     BigDecimal getConversionRate(String sourceCurrency, String destinationCurrency);
 
-    Long transferRecipient(Recipient recipient, String currencyType, double amount, Account account) throws Exception;
+    Long transferRecipient(Recipient recipient, Date date, String currencyType, double amount, Account account) throws Exception;
 }

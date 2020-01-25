@@ -1,9 +1,11 @@
 package com.trading.forex.service;
 
 import com.trading.forex.entity.Account;
+import com.trading.forex.entity.Constant;
 import com.trading.forex.entity.TransactionDetails;
 import com.trading.forex.entity.User;
 import com.trading.forex.repository.AccountRepository;
+import com.trading.forex.repository.ConstantRepository;
 import com.trading.forex.repository.UserRepository;
 import com.trading.forex.util.UtilityClass;
 import org.slf4j.Logger;
@@ -21,8 +23,6 @@ import java.util.Date;
 
 public class AccountServiceImpl implements AccountService {
 
-    private static int newAccountNum = 1211345120;
-
     private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
     @Inject
@@ -37,6 +37,9 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private ConstantRepository constantRepository;
+
 
     @Override
     @Transactional(rollbackOn = Exception.class)
@@ -45,8 +48,12 @@ public class AccountServiceImpl implements AccountService {
         try {
             account = new Account();
             account.setAccountBalance(new BigDecimal(0.0));
+            Constant constant = constantRepository.findByName("ACCOUNT_NUM");
+            int newAccountNum = Integer.parseInt(constant.getVal());
             account.setAccountNumber(Integer.toString(++newAccountNum));
             account.setCurrencyType(currencyType);
+
+            constantRepository.updateValByName(Integer.toString(newAccountNum), "ACCOUNT_NUM");
 
             accountRepository.save(account);
         } catch (Exception ex) {
