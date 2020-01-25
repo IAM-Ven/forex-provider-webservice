@@ -16,7 +16,7 @@ cd forex-provider-webservice
 
 2. Create SQL Database
 ```sql
-create database forex_app
+create database forex_db
 ```
 
 3. Change MySQL username and password as per your MySQL installation
