@@ -4,6 +4,7 @@ import com.trading.forex.entity.Account;
 import com.trading.forex.entity.Recipient;
 import com.trading.forex.entity.TransactionDetails;
 import com.trading.forex.entity.User;
+import com.trading.forex.exception.AppException;
 import com.trading.forex.payload.CurrencyConverterResponse;
 import com.trading.forex.payload.ExchangeRatesResponse;
 import com.trading.forex.payload.PagedResponse;
@@ -12,6 +13,8 @@ import com.trading.forex.repository.RecipientRepository;
 import com.trading.forex.repository.TransactionRepository;
 import com.trading.forex.repository.UserRepository;
 import com.trading.forex.util.UtilityClass;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,6 +157,10 @@ public class TransactionServiceImpl implements TransactionService {
         return new BigDecimal(response.getBody().getRates().get(destinationCurrency));
     }
 
+    private Boolean isDaysLessThanOrEqualToThree(LocalDate start, LocalDate end) {
+        return ((Days.daysBetween(start, end).isLessThan(Days.THREE)) && (Days.daysBetween(start, end).equals(Days.THREE)));
+    }
+
     @Override
     @Transactional(rollbackOn = Exception.class)
     public Long transferRecipient(Recipient recipient, String currencyType, double amount, Account account) throws Exception {
@@ -161,6 +168,10 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionDetails transactionDetails = null;
         BigDecimal conversionRate = getConversionRate(currencyType, recipient.getCurrencyType());
         try {
+            TransactionDetails details = transactionRepository.findByRecipientName(recipient.getName());
+            if (isDaysLessThanOrEqualToThree(new LocalDate(details.getDate().getTime()), new LocalDate())) {
+                throw new AppException("Transfer cannot be made for " + recipient.getName() + ". Please try after " + (Days.daysBetween(new LocalDate(details.getDate().getTime()), new LocalDate())) + " days");
+            }
             account.setAccountBalance(account.getAccountBalance().subtract((new BigDecimal(amount)).multiply(conversionRate)));
             accountRepository.save(account);
             date = new Date();

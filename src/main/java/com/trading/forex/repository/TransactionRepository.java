@@ -14,6 +14,9 @@ public interface TransactionRepository extends JpaRepository<TransactionDetails,
 
     List<TransactionDetails> findAll();
 
+    @Query("from Recipient as rt inner join TransactionDetails as td where rt.name=:recipientName")
+    TransactionDetails findByRecipientName(@Param("recipientName") String recipientName);
+
     @Query("from Recipient as rt inner join TransactionDetails as td where rt.name=:name and td.date>= :startDate and td.date<= :endDate")
     Page<TransactionDetails> findAllByRecipientNameBetweenDates(@Param("name") String name, @Param("startDate") Date startDate, @Param("endDate") Date endDate, Pageable pageable);
 
