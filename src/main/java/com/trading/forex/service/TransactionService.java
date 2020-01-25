@@ -3,14 +3,16 @@ package com.trading.forex.service;
 import com.trading.forex.entity.Account;
 import com.trading.forex.entity.Recipient;
 import com.trading.forex.entity.TransactionDetails;
+import com.trading.forex.payload.CurrencyConverterResponse;
+import com.trading.forex.payload.ExchangeRatesResponse;
 import com.trading.forex.payload.PagedResponse;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.Date;
-import java.util.List;
 
 public interface TransactionService {
+
+    TransactionDetails getTransactionById(Long id);
 
     PagedResponse<TransactionDetails> findTransactionList(String username, int page, int size);
 
@@ -22,7 +24,7 @@ public interface TransactionService {
 
     void saveAccountWithdrawTransaction(TransactionDetails transactionDetails) throws Exception;
 
-    List<Recipient> findRecipientList(Principal principal);
+    PagedResponse<Recipient> findRecipientList(String username, int page, int size);
 
     Recipient saveRecipient(Recipient recipient);
 
@@ -30,7 +32,9 @@ public interface TransactionService {
 
     void deleteRecipientByName(String recipientName);
 
+    ExchangeRatesResponse getAllRates(String currencyType);
+
     BigDecimal getConversionRate(String sourceCurrency, String destinationCurrency);
 
-    void transferRecipient(Recipient recipient, String currencyType, double amount, Account account) throws Exception;
+    Long transferRecipient(Recipient recipient, String currencyType, double amount, Account account) throws Exception;
 }
